@@ -1,8 +1,8 @@
 /* References:
- * https://github.com/shmmsra/esp/blob/main/http/http.ino
- * https://github.com/shmmsra/esp/blob/main/relay/relay.ino
- * https://github.com/shmmsra/esp/blob/main/ntp/ntp.ino
- * https://github.com/shmmsra/esp/blob/main/udp/udp.ino
+ * https://github.com/shmmsra/esp/blob/main/src/http/http.ino
+ * https://github.com/shmmsra/esp/blob/main/src/relay/relay.ino
+ * https://github.com/shmmsra/esp/blob/main/src/ntp/ntp.ino
+ * https://github.com/shmmsra/esp/blob/main/src/udp/udp.ino
  */
 
 #include <ESP8266WiFi.h>
