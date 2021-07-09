@@ -15,6 +15,13 @@
 #define __RELAY__ 0
 #define __MISS_COUNT_THRESHOLD__ 10
 #define __SMART_RELAY__ 1
+#define __ENABLE_LOGS__ 1
+
+#ifdef __ENABLE_LOGS__
+#define LOG_PRINTF(...) Serial.printf(__VA_ARGS__)
+#else
+#define LOG_PRINTF(...) {}
+#endif
 
 const char __SSID__[] = "********";
 const char __PASS__[] = "********";
@@ -39,7 +46,10 @@ void setup() {
         delay(500);
     }
 
-    Serial.printf("[setup] IP address: %s\n", WiFi.localIP().toString().c_str());
+    LOG_PRINTF(
+        "[setup] IP address: %s\n",
+        WiFi.localIP().toString().c_str()
+    );
     udpLocal.begin(__PORT__);
     pinMode(__RELAY__, OUTPUT);
 }
@@ -48,25 +58,25 @@ void loop() {
 #ifdef __SMART_RELAY__
     if (receivedMessage(F("ESP:SL:TV"))) {
         missCount = 1;
-        Serial.printf(
+        LOG_PRINTF(
             "[loop] Status: receivedMessage: true, missCount: %hu\n",
             missCount
         );
     } else if (missCount > 0) {
         // Prevent number overflow
         missCount = (++missCount > __MISS_COUNT_THRESHOLD__) ? (__MISS_COUNT_THRESHOLD__ + 1) : missCount;
-        Serial.printf(
+        LOG_PRINTF(
             "[loop] Status: receivedMessage: false, missCount: %hu\n",
             missCount
         );
     }
 
     unsigned short hour = getHour();
-    Serial.printf("[loop] Status: missCount: %hu, hour: %hu\n", missCount, hour);
+    LOG_PRINTF("[loop] Status: missCount: %hu, hour: %hu\n", missCount, hour);
     if (hour >= 6 && hour <= 18) {
         // Turn off the light
         digitalWrite(__RELAY__, HIGH);
-    } else if ((hour > 18) && (hour <= 23)) {
+    } else if (hour > 18 && hour <= 23) {
         // Turn on the light
         digitalWrite(__RELAY__, LOW);
     } else {
@@ -102,20 +112,17 @@ bool receivedMessage(const __FlashStringHelper* msg) {
     unsigned short i = 0;
     while (i++ < 5) {
         if (udpLocal.parsePacket()) {
-            // receive incoming UDP packets
-            Serial.printf(
-                "[receivedMessage] Received from %s, port %d\n",
-                udpLocal.remoteIP().toString().c_str(),
-                udpLocal.remotePort()
-            );
             short len = udpLocal.read(data, 255);
             if (len > 0) {
                 data[len] = 0;
-                Serial.printf(
-                    "[receivedMessage] UDP packet contents: %s\n",
-                    data
-                );
                 if (String(data) == msg) {
+                    // receive incoming UDP packets
+                    LOG_PRINTF(
+                        "[receivedMessage] Received from %s, port %d, data: %s\n",
+                        udpLocal.remoteIP().toString().c_str(),
+                        udpLocal.remotePort(),
+                        data
+                    );
                     udpLocal.flush();
                     return true;
                 }
